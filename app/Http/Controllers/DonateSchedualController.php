@@ -10,7 +10,7 @@ class DonateSchedualController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('blood_compare', ['except' => ['login','register']]);
+        $this->middleware('blood_compare')->only('store');
     }
     /**
      * Display a listing of the resource.
@@ -21,7 +21,7 @@ class DonateSchedualController extends Controller
     {
         $donate_schedual = donate_schedual::with( 'user','blood_type')->get();
         return response()->json([
-            'message' => 'Fetch data done',
+            'message' => trans("response.test"),
             'data' => $donate_schedual,
             
         ] , Response::HTTP_ACCEPTED);
@@ -30,7 +30,7 @@ class DonateSchedualController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \Illuminate\Http\Request $request
      * @return \Illuminate\Http\Response
      */
     public function store(Request $request)
@@ -48,8 +48,8 @@ class DonateSchedualController extends Controller
             "verified" =>false,
         ]);
         return response()->json([
-            'message' => 'Created Successfuly',
-            'data' => $donate_schedual,
+            "message" => "Created Successfuly",
+            "data" => $donate_schedual,
             
         ] , Response::HTTP_ACCEPTED);
 
@@ -58,12 +58,19 @@ class DonateSchedualController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  \App\Models\donate_schedual  $donate_schedual
      * @return \Illuminate\Http\Response
+     * 
      */
-    public function show(donate_schedual $donate_schedual)
+    public function show($user_id )
     {
-        //
+        $user_schedual = donate_schedual::where('id','=',$user_id)->with('user','blood_type')->get();
+        return response()->json([
+            "message" => "Fetch Data Successfuly",
+            "data" => $user_schedual,
+            
+        ] , Response::HTTP_ACCEPTED);
+
+        // dd($user_schedual); The dd Function is so important for debugging and checking your work
     }
 
     /**
@@ -73,19 +80,38 @@ class DonateSchedualController extends Controller
      * @param  \App\Models\donate_schedual  $donate_schedual
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, donate_schedual $donate_schedual)
+    public function update(Request $request,  $donate_schedual)
     {
-        //
+            $request->validate([
+          $new_amount =  "amount" => 'required|min:1|integer',
+        ]);
+        donate_schedual::where('id','=',$donate_schedual)->with('user','blood_type')->update([
+
+            "amount" => $request->amount
+        ]);
+        return response()->json([
+            "message" => "Data Updates Successfuly",
+            
+        ] , Response::HTTP_ACCEPTED);
+
     }
 
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Models\donate_schedual  $donate_schedual
      * @return \Illuminate\Http\Response
      */
-    public function destroy(donate_schedual $donate_schedual)
+    public function destroy( $user_id)
     {
-        //
+        if (donate_schedual::where('id')== $user_id) {
+            donate_schedual::where('id','=',$user_id)->delete();
+            return response()->json([
+                "message" => "Data Deleted Successfuly",
+            ] , Response::HTTP_ACCEPTED);
+        }else {
+            return response()->json([
+                "message" => "schedual with this id not found ",
+            ] , Response::HTTP_NOT_FOUND);
+        }
     }
 }

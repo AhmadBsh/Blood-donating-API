@@ -41,6 +41,7 @@ class Kernel extends HttpKernel
         'api' => [
             // \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
             'throttle:api',
+            'localization',
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
         ],
     ];
@@ -56,6 +57,7 @@ class Kernel extends HttpKernel
         
         'auth' => \App\Http\Middleware\Authenticate::class,
         'blood_compare' => \App\Http\Middleware\BloodCompare::class,
+        'localization' => \App\Http\Middleware\Localization::class,
         'auth.basic' => \Illuminate\Auth\Middleware\AuthenticateWithBasicAuth::class,
         'auth.session' => \Illuminate\Session\Middleware\AuthenticateSession::class,
         'cache.headers' => \Illuminate\Http\Middleware\SetCacheHeaders::class,
