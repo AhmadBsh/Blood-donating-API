@@ -11,6 +11,7 @@ class donate_schedual extends Model
     protected $fillable = [
         "user_id",
         "amount",
+        "center",
         "blood_type_id",
         "verified",
     ];

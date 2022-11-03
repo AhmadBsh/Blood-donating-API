@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreDonateRequest;
+use App\Http\Resources\DonateResource;
 use App\Models\donate_schedual;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -11,6 +13,8 @@ class DonateSchedualController extends Controller
     public function __construct()
     {
         $this->middleware('blood_compare')->only('store');
+        $this->middleware('permission:create-donate-schedule')->only('store');
+        $this->middleware('permission:view-donate-schedule')->only('index');
     }
     /**
      * Display a listing of the resource.
@@ -22,8 +26,8 @@ class DonateSchedualController extends Controller
         $donate_schedual = donate_schedual::with( 'user','blood_type')->get();
         return response()->json([
             'message' => trans("response.test"),
-            'data' => $donate_schedual,
-            
+            'data' => DonateResource::collection($donate_schedual),
+            // 'data' => $donate_schedual,
         ] , Response::HTTP_ACCEPTED);
     }
 
@@ -33,17 +37,13 @@ class DonateSchedualController extends Controller
      * @param  \Illuminate\Http\Request $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(StoreDonateRequest $request)
     {
-        $request->validate([
-            "user_id" => 'required|exists:users,id',
-            "amount" => 'required|min:1|integer',
-            "blood_type_id" =>'required|exists:blood_types,id',
-            "verified" =>'nullable',
-        ]);
+        
         $donate_schedual = donate_schedual::create([
             "user_id" =>$request->user_id,
             "amount" =>$request->amount,
+            "center" =>$request->center,
             "blood_type_id" =>$request->blood_type_id,
             "verified" =>false,
         ]);
@@ -52,6 +52,28 @@ class DonateSchedualController extends Controller
             "data" => $donate_schedual,
             
         ] , Response::HTTP_ACCEPTED);
+
+        //********* Question #1 *********\\
+
+        // if ($request->validate(["user_id" => 'unique:donate_scheduals']) == true) {
+        //     $donate_schedual = donate_schedual::create([
+        //         "user_id" =>$request->user_id,
+        //         "amount" =>$request->amount,
+        //         "blood_type_id" =>$request->blood_type_id,
+        //         "verified" =>false,
+        //     ]);
+        //     return response()->json([
+        //         "message" => "Created Successfuly",
+        //         "data" => $donate_schedual,
+                
+        //     ] , Response::HTTP_ACCEPTED);
+        // }else {
+        //     return response()->json([
+        //         "message" => "You can't create another donate schedual before 7 days from the last donation",
+                
+        //     ] , Response::HTTP_FORBIDDEN);
+        // }
+
 
     }
 
@@ -83,14 +105,14 @@ class DonateSchedualController extends Controller
     public function update(Request $request,  $donate_schedual)
     {
             $request->validate([
-          $new_amount =  "amount" => 'required|min:1|integer',
+            "amount" => 'required|min:1|integer',
         ]);
         donate_schedual::where('id','=',$donate_schedual)->with('user','blood_type')->update([
 
             "amount" => $request->amount
         ]);
         return response()->json([
-            "message" => "Data Updates Successfuly",
+            "message" => "Data Updated Successfuly",
             
         ] , Response::HTTP_ACCEPTED);
 
@@ -102,7 +124,7 @@ class DonateSchedualController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function destroy( $user_id)
-    {
+    {   
         if (donate_schedual::where('id')== $user_id) {
             donate_schedual::where('id','=',$user_id)->delete();
             return response()->json([

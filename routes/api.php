@@ -20,9 +20,15 @@ use Illuminate\Support\Facades\Route;
 //     return $request->user();
 // });
 
-Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login', [AuthController::class, 'login']);
+Route::controller(AuthController::class)->middleware('auth')->group(function() {
+        Route::post('register','register');
+        Route::post('login','login');
+        Route::get('users','index');
+        Route::put('user/{user_id}','update');
+        Route::delete('donate/{user_id}','destroy');
+ 
 
+});
 // Route::apiResource('donate', DonateSchedualController::class)->middleware('auth');
 Route::controller(DonateSchedualController::class)->middleware('auth')->group(function() {
         Route::get('donate','index');

@@ -1,6 +1,8 @@
 <?php
 
 namespace App\Http\Controllers;
+
+use App\Http\Requests\RegisterUserRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -12,6 +14,20 @@ class AuthController extends Controller
     public function __construct()
     {
         $this->middleware('auth:api', ['except' => ['login','register']]);
+        $this->middleware('permission:create-normal-user')->only('register');
+        $this->middleware('permission:view-all')->only('index');
+        $this->middleware('permission:edit-all')->only('show');
+        $this->middleware('permission:view-user')->only('show');
+        $this->middleware('permission:edit-all')->only('show');
+
+        
+    }
+    public function index()
+    {
+        return response()->json([
+            'message' => trans("response.test"),
+            'data' => User::class,
+        ] , Response::HTTP_ACCEPTED);
     }
 
     public function login(Request $request)
@@ -42,19 +58,7 @@ class AuthController extends Controller
 
     }
 
-    public function register(Request $request){
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'password' => 'required|string|min:6',
-            'phone_number' => 'required|string|max:255|unique:users',
-            'city' => 'required|in:latakia,damascus,homs',
-            'address' => 'required',
-            'blood_type_id' => 'required',
-            'national_number' => 'required|string',
-            'sex' => 'required|in:female,male',
-            'age' => 'required|integer|min:18',
-            'weight' => 'required|integer',
-        ]);
+    public function register(RegisterUserRequest $request){
 
         $user = User::create([
             'name' => $request->name,
@@ -79,6 +83,37 @@ class AuthController extends Controller
                 'type' => 'bearer',
             ]
         ]);
+    }
+
+    public function update(Request $request,  $user)
+    {
+            $request->validate([
+                'name' => 'required|string|max:255',
+                'password' => 'required|string|min:6',
+                'phone_number' => 'required|string|max:255|unique:users',
+                'city' => 'required|in:latakia,damascus,homs',
+                'address' => 'required',
+                'national_number' => 'required|string',
+                'age' => 'required|integer|min:18',
+                'weight' => 'required|integer',
+        ]);
+        User::where('id','=',$user)->update([
+            "name" => $request->name,
+            "password" => $request->password,
+            "phone_number" => $request->phone_number,
+            "city" => $request->city,
+            "address" => $request->address,
+            "national_number" => $request->national_number,
+            "weight" => $request->weight,
+            "age" => $request->age,
+            
+            
+        ]);
+        return response()->json([
+            "message" => "Data Updated Successfuly",
+            
+        ] , Response::HTTP_ACCEPTED);
+
     }
 
     public function logout()

@@ -18,9 +18,11 @@ return new class extends Migration
             $table->unsignedBigInteger('user_id');
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
             $table->integer('amount');
+            $table->string('center');
             $table->unsignedBigInteger('blood_type_id');
             $table->foreign('blood_type_id')->references('id')->on('blood_types')->onDelete('cascade');
             $table->boolean('verified')->default(false);
+
             $table->timestamps(); 
         });
     }
